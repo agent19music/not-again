@@ -6,13 +6,16 @@ Built with Expo + React Native. Data lives in AsyncStorage (`gooned.entries.v1`)
 
 ## Preview
 
-![Home — dark](https://pub-c6a134c8e1fd4881a475bf80bc0717ba.r2.dev/not-again/not-today-mock1.png)
-
-![Stats — sites & subjects](https://pub-c6a134c8e1fd4881a475bf80bc0717ba.r2.dev/not-again/not-today-mock2.png)
-
-![Stats — week digest](https://pub-c6a134c8e1fd4881a475bf80bc0717ba.r2.dev/not-again/not-today-mock3.png)
-
-![Home — light](https://pub-c6a134c8e1fd4881a475bf80bc0717ba.r2.dev/not-again/not-today-mock4.png)
+<table>
+  <tr>
+    <td width="50%"><img src="https://pub-c6a134c8e1fd4881a475bf80bc0717ba.r2.dev/not-again/not-today-mock1.png" alt="Home — dark" /></td>
+    <td width="50%"><img src="https://pub-c6a134c8e1fd4881a475bf80bc0717ba.r2.dev/not-again/not-today-mock2.png" alt="Stats — sites & subjects" /></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="https://pub-c6a134c8e1fd4881a475bf80bc0717ba.r2.dev/not-again/not-today-mock3.png" alt="Stats — week digest" /></td>
+    <td width="50%"><img src="https://pub-c6a134c8e1fd4881a475bf80bc0717ba.r2.dev/not-again/not-today-mock4.png" alt="Home — light" /></td>
+  </tr>
+</table>
 
 ## Features
 
