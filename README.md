@@ -4,17 +4,15 @@ Local-only relapse tracker. Log slips, watch your streak since the last one, and
 
 Built with Expo + React Native. Data lives in AsyncStorage (`gooned.entries.v1`).
 
-## Screenshots
+## Preview
 
-<p align="center">
-  <img src="https://pub-c6a134c8e1fd4881a475bf80bc0717ba.r2.dev/not-again/not-today-mock1.png" width="220" alt="Not again — home streak" />
-  &nbsp;
-  <img src="https://pub-c6a134c8e1fd4881a475bf80bc0717ba.r2.dev/not-again/not-today-mock2.png" width="220" alt="Not again — log entry" />
-  &nbsp;
-  <img src="https://pub-c6a134c8e1fd4881a475bf80bc0717ba.r2.dev/not-again/not-today-mock3.png" width="220" alt="Not again — recent list" />
-  &nbsp;
-  <img src="https://pub-c6a134c8e1fd4881a475bf80bc0717ba.r2.dev/not-again/not-today-mock4.png" width="220" alt="Not again — stats" />
-</p>
+![Home — dark](https://pub-c6a134c8e1fd4881a475bf80bc0717ba.r2.dev/not-again/not-today-mock1.png)
+
+![Stats — sites & subjects](https://pub-c6a134c8e1fd4881a475bf80bc0717ba.r2.dev/not-again/not-today-mock2.png)
+
+![Stats — week digest](https://pub-c6a134c8e1fd4881a475bf80bc0717ba.r2.dev/not-again/not-today-mock3.png)
+
+![Home — light](https://pub-c6a134c8e1fd4881a475bf80bc0717ba.r2.dev/not-again/not-today-mock4.png)
 
 ## Features
 
