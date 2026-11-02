@@ -12,6 +12,7 @@ import { useRouter } from 'expo-router';
 import { ArrowLeftIcon, TrashIcon } from 'phosphor-react-native';
 
 import SafeText from '@/components/safe-text';
+import WidgetSettings from '@/components/widget-settings';
 import { Radius, Spacing, Typography } from '@/constants/theme';
 import { useNotifPrefs } from '@/hooks/use-notif-prefs';
 import { useTheme } from '@/hooks/use-theme';
@@ -116,6 +117,7 @@ export default function SettingsScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        <WidgetSettings />
         <View style={styles.section}>
           <SafeText variant="label" color="textSecondary">
             Notifications
