@@ -36,6 +36,10 @@ export const Colors = {
     accentSoftText: '#c4334c',
     accentMuted: '#e0b4bc',
 
+    /* Celebration (widget confetti) — brand swatches, same in both modes */
+    confettiOrange: '#FB7D55',
+    confettiYellow: '#F2C85B',
+
     /* Neutral tone */
     neutralFill: '#171717',  // neutral-900
     onNeutralFill: '#ffffff',
@@ -82,6 +86,10 @@ export const Colors = {
     accentSoftText: '#f5a3b0',
     accentMuted: '#73555c',
 
+    /* Celebration (widget confetti) — brand swatches, same in both modes */
+    confettiOrange: '#FB7D55',
+    confettiYellow: '#F2C85B',
+
     /* Neutral tone — inverts to a light fill on dark */
     neutralFill: '#fafafa',  // neutral-50
     onNeutralFill: '#171717', // neutral-900
@@ -107,6 +115,9 @@ export const Colors = {
     sheenSubtle: 'rgba(255, 255, 255, 0.08)',
   },
 } as const;
+
+/** Widget confetti swatches, in the order the widgets use them. Read by the iOS widget props and the Android plugin. */
+export const ConfettiColors = [Colors.light.confettiOrange, Colors.light.confettiYellow];
 
 export type ThemeColors = { [K in keyof typeof Colors.light]: string };
 export type ColorToken = keyof ThemeColors;
