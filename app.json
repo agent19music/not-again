@@ -87,7 +87,8 @@
           ]
         }
       ],
-      "./plugins/withStreakHourGrid.js"
+      "./plugins/withStreakHourGrid.js",
+      "./plugins/withAndroidBuildCompatibility.js"
     ],
     "experiments": {
       "typedRoutes": true,
