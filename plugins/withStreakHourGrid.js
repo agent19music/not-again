@@ -26,13 +26,32 @@ const IOS_FONTS = [
   { source: LABEL_FONT, file: 'Geist-Medium.ttf' },
 ];
 
-/** Colors mirror src/constants/theme.ts. tests/widget-sources.test.ts checks them. */
-const ANDROID_COLORS = {
-  light: { background: '#fafafa', text: '#171717', textSecondary: '#737373', border: '#e5e5e5', accent: '#D83C55' },
-  dark: { background: '#0a0a0a', text: '#fafafa', textSecondary: '#a3a3a3', border: '#404040', accent: '#E85A6F' },
-  /** Brand swatches from the Spec frame (icon orange, pretzel yellow). */
-  confettiExtra: ['#FB7D55', '#F2C85B'],
-};
+/**
+ * Reads Colors from src/constants/theme.ts (the single source of truth) at
+ * prebuild. Parsed as text so the plugin needs no TypeScript loader.
+ */
+function readThemeColors(projectRoot = join(__dirname, '..')) {
+  const src = readFileSync(join(projectRoot, 'src/constants/theme.ts'), 'utf8');
+  const block = (mode) => {
+    const m = src.match(new RegExp(`\\b${mode}:\\s*\\{([\\s\\S]*?)\\n\\s*\\},`));
+    if (!m) throw new Error(`withStreakHourGrid: Colors.${mode} not found in theme.ts`);
+    const out = {};
+    for (const [, key, value] of m[1].matchAll(/^\s*(\w+):\s*'([^']+)'/gm)) out[key] = value;
+    return out;
+  };
+  const pick = (c, mode) => {
+    const keys = ['background', 'text', 'textSecondary', 'border', 'accent', 'confettiOrange', 'confettiYellow'];
+    for (const k of keys) {
+      if (!/^#[0-9a-fA-F]{6}$/.test(c[k] ?? '')) throw new Error(`withStreakHourGrid: Colors.${mode}.${k} missing`);
+    }
+    return Object.fromEntries(keys.map((k) => [k, c[k]]));
+  };
+  const light = pick(block('light'), 'light');
+  const dark = pick(block('dark'), 'dark');
+  return { light, dark, confettiExtra: [light.confettiOrange, light.confettiYellow] };
+}
+
+const ANDROID_COLORS = readThemeColors();
 
 const LAYOUT_XML = `<?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -518,6 +537,7 @@ function withStreakHourGrid(config) {
 
 module.exports = withStreakHourGrid;
 module.exports.ANDROID_COLORS = ANDROID_COLORS;
+module.exports.readThemeColors = readThemeColors;
 module.exports.IOS_FONTS = IOS_FONTS;
 module.exports.providerSource = providerSource;
 module.exports.addResourceToTarget = addResourceToTarget;

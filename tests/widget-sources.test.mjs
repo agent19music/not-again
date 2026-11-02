@@ -4,13 +4,15 @@ import { existsSync, readFileSync } from 'node:fs';
 import { createRequire, stripTypeScriptTypes } from 'node:module';
 import { describe, it } from 'node:test';
 
-import { Colors } from '../src/constants/theme.ts';
+import { Colors, ConfettiColors } from '../src/constants/theme.ts';
 import { confettiPieces } from '../src/widgets/hour-grid.ts';
 
 const require = createRequire(import.meta.url);
 const plugin = require('../plugins/withStreakHourGrid.js');
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
 const ios = read('src/widgets/streak-widget.ios.tsx');
+const sync = read('src/widgets/sync-streak-widget.ts');
+const pluginSrc = read('plugins/withStreakHourGrid.js');
 const android = read('src/widgets/streak-widget.android.tsx');
 const kotlin = plugin.providerSource('com.example');
 const app = JSON.parse(read('app.json')).expo;
@@ -47,6 +49,32 @@ describe('colors come from theme.ts', () => {
       });
     }
   }
+  it('confetti swatches are named theme tokens, same in both modes', () => {
+    for (const mode of ['light', 'dark']) {
+      assert.equal(Colors[mode].confettiOrange, '#FB7D55');
+      assert.equal(Colors[mode].confettiYellow, '#F2C85B');
+    }
+    assert.deepEqual(ConfettiColors, [Colors.light.confettiOrange, Colors.light.confettiYellow]);
+  });
+  it('no widget source hard-codes the confetti swatches', () => {
+    for (const [name, src] of [['ios', ios], ['android', android], ['sync', sync], ['plugin', pluginSrc]]) {
+      assert.ok(!/FB7D55|F2C85B/i.test(src), name);
+    }
+  });
+  it('iOS gets the swatches from theme.ts through props', () => {
+    assert.ok(/import \{ ConfettiColors \} from '@\/constants\/theme'/.test(ios));
+    assert.ok(ios.includes('confettiColors: ConfettiColors'));
+    assert.ok(ios.includes('...(props.confettiColors'));
+    assert.ok(/import \{ ConfettiColors \} from '@\/constants\/theme'/.test(sync));
+    assert.ok(sync.includes('confettiColors: ConfettiColors'));
+  });
+  it('Android plugin reads every widget colour from theme.ts', () => {
+    assert.deepEqual(plugin.readThemeColors(), plugin.ANDROID_COLORS);
+    assert.deepEqual(plugin.ANDROID_COLORS.confettiExtra, ConfettiColors);
+    for (const hex of ConfettiColors) assert.ok(kotlin.includes(`0xFF${hex.slice(1).toUpperCase()}.toInt()`));
+    const palette = kotlin.match(/val palette = intArrayOf\((.*)\)/)[1];
+    assert.equal(palette, `accent, ink, ${ConfettiColors.map((h) => `0xFF${h.slice(1).toUpperCase()}.toInt()`).join(', ')}`);
+  });
   it('accent is the rose from the brief', () => {
     assert.equal(Colors.light.accent, '#D83C55');
     assert.equal(Colors.dark.accent, '#E85A6F');

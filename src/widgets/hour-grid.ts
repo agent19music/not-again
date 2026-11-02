@@ -55,6 +55,8 @@ export type StreakWidgetProps = {
   frame: number;
   /** Full streak hours. Seeds the confetti so every hour looks different. */
   seed: number;
+  /** [confettiOrange, confettiYellow] from theme.ts; set by the app, the widget can't import. */
+  confettiColors?: string[];
 };
 
 export type StreakParts = {

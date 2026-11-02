@@ -12,6 +12,8 @@ import {
 } from '@expo/ui/swift-ui/modifiers';
 import { createWidget, type WidgetEnvironment } from 'expo-widgets';
 
+import { ConfettiColors } from '@/constants/theme';
+
 import type { StreakWidgetProps } from './hour-grid';
 
 export type { StreakWidgetProps } from './hour-grid';
@@ -33,7 +35,8 @@ const StreakWidgetView = (props: StreakWidgetProps, environment: WidgetEnvironme
   const muted = dark ? '#a3a3a3' : '#737373';
   const empty = dark ? '#404040' : '#e5e5e5';
   const accent = dark ? '#E85A6F' : '#D83C55';
-  const palette = [accent, ink, '#FB7D55', '#F2C85B'];
+  // Orange and yellow are theme.ts confettiOrange/confettiYellow, passed in props.
+  const palette = [accent, ink, ...(props.confettiColors ?? [accent, ink])];
 
   const family = environment.widgetFamily ?? 'systemSmall';
   const size =
@@ -198,4 +201,5 @@ export default createWidget<StreakWidgetProps>('StreakWidget', StreakWidgetView,
   phase: 'none',
   frame: 0,
   seed: 0,
+  confettiColors: ConfettiColors,
 });

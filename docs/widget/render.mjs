@@ -24,7 +24,7 @@ function widget(size, mode, now, empty) {
   const c = Colors[mode];
   const [W, H] = sizes[size];
   const s = widgetState(empty ? null : LAST, now);
-  const palette = [c.accent, c.text, '#FB7D55', '#F2C85B'];
+  const palette = [c.accent, c.text, c.confettiOrange, c.confettiYellow];
   const caption = empty ? 'Nothing logged yet.' : 'since last goon';
   const grid = (cell, gap) =>
     `<div style="display:grid;grid-template-columns:repeat(10,${cell}px);gap:${gap}px">${Array.from(

@@ -1,5 +1,6 @@
 import { AppState, Platform } from 'react-native';
 
+import { ConfettiColors } from '@/constants/theme';
 import { ensureHydrated, getSnapshot, subscribe } from '@/lib/goon-store';
 import { buildTimeline, widgetState } from '@/widgets/hour-grid';
 import StreakWidget from '@/widgets/streak-widget';
@@ -20,7 +21,10 @@ function push() {
   const last = lastOccurredAt();
   const now = Date.now();
   if (Platform.OS === 'ios') {
-    StreakWidget.updateTimeline(buildTimeline(last, now));
+    // The serialised widget view can't import theme.ts, so the confetti swatches ride in props.
+    StreakWidget.updateTimeline(
+      buildTimeline(last, now).map((e) => ({ ...e, props: { ...e.props, confettiColors: ConfettiColors } }))
+    );
   } else {
     StreakWidget.updateSnapshot(widgetState(last, now));
   }
