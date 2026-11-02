@@ -132,9 +132,6 @@ export function computeDigest(entries: GoonEntry[], now: number): Digest {
   }
   const lastEntry = sorted[sorted.length - 1];
   const currentGapMs = lastEntry ? now - lastEntry.occurredAt : null;
-  if (currentGapMs !== null && (longestGapMs === null || currentGapMs > longestGapMs)) {
-    longestGapMs = currentGapMs;
-  }
 
   return { thisWeek, lastWeek, deltaPct, longestGapMs, currentGapMs, totalCount: entries.length };
 }

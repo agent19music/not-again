@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 
 import SafeText from '@/components/safe-text';
 import { Motion, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
 import {
   EMPTY_STREAK,
   formatStreak,
@@ -13,7 +12,6 @@ import {
 } from '@/lib/streak';
 
 export function StreakTimer({ lastGoonAt, now }: { lastGoonAt: number | null; now: number }) {
-  const colors = useTheme();
   const [reduceMotion, setReduceMotion] = useState(false);
 
   useEffect(() => {

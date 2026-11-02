@@ -1,2 +1,4 @@
 allowBuilds:
   unrs-resolver: true
+patchedDependencies:
+  expo-widgets@58.0.26: patches/expo-widgets@58.0.26.patch

@@ -8,15 +8,28 @@
     "scheme": "gooned",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "bundleIdentifier": "com.ufwsean.Gooned"
+      "bundleIdentifier": "com.ufwsean.Gooned",
+      "infoPlist": {
+        "UIBackgroundModes": [
+          "processing"
+        ]
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#D82F46",
-        "foregroundImage": "./assets/images/icon.png"
+        "backgroundColor": "#FB7D55",
+        "foregroundImage": "./assets/images/icon.png",
+        "monochromeImage": "./assets/images/icon.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.gooned"
+      "package": "com.gooned",
+      "permissions": [
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.SCHEDULE_EXACT_ALARM",
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.VIBRATE",
+        "android.permission.WAKE_LOCK"
+      ]
     },
     "web": {
       "output": "static",
@@ -27,11 +40,50 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#D82F46",
-          "image": "./assets/images/splash-icon.png",
+          "backgroundColor": "#FB7D55",
+          "image": "./assets/images/icon.png",
           "imageWidth": 220
         }
-      ]
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon.png",
+          "largeIcon": "./assets/images/icon.png",
+          "color": "#FB7D55",
+          "defaultChannel": "care"
+        }
+      ],
+      "expo-background-task",
+      "expo-font",
+      "expo-status-bar",
+      [
+        "expo-widgets",
+        {
+          "enableAndroid": true,
+          "widgets": [
+            {
+              "name": "StreakWidget",
+              "displayName": "Streak",
+              "description": "Time since your last goon",
+              "ios": {
+                "supportedFamilies": ["systemSmall", "systemMedium"],
+                "contentMarginsDisabled": true,
+                "initialLayout": "./src/widgets/streak-widget.ios.tsx"
+              },
+              "android": {
+                "minWidth": 180,
+                "minHeight": 110,
+                "targetCellWidth": 3,
+                "targetCellHeight": 2,
+                "resizeMode": "horizontal",
+                "initialLayout": "./src/widgets/streak-widget.android.tsx"
+              }
+            }
+          ]
+        }
+      ],
+      "./plugins/withStreakChronometer.js"
     ],
     "experiments": {
       "typedRoutes": true,

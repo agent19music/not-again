@@ -1,0 +1,79 @@
+diff --git a/android/src/main/java/expo/modules/widgets/ExpoWidgetEmittableTree.kt b/android/src/main/java/expo/modules/widgets/ExpoWidgetEmittableTree.kt
+index 3df9e4a4d92155a00d3f5652d17d20be10bef1c1..6409071d92daa301dc86bbb0bba05b321ea29b2a 100644
+--- a/android/src/main/java/expo/modules/widgets/ExpoWidgetEmittableTree.kt
++++ b/android/src/main/java/expo/modules/widgets/ExpoWidgetEmittableTree.kt
+@@ -95,6 +95,7 @@ import androidx.glance.layout.wrapContentWidth
+ import androidx.glance.semantics.contentDescription
+ import androidx.glance.semantics.semantics
+ import androidx.glance.text.EmittableText
++import androidx.glance.text.FontFamily
+ import androidx.glance.text.FontStyle
+ import androidx.glance.text.FontWeight
+ import androidx.glance.text.TextAlign
+@@ -225,7 +226,8 @@ private fun ReadableMap.toPeekText(converterContext: ConverterContext): Emittabl
+       fontWeight = props.fontWeight?.toGlanceFontWeight() ?: typography?.fontWeight,
+       fontStyle = props.fontStyle?.toGlanceFontStyle(),
+       textAlign = props.textAlign?.toGlanceTextAlign(),
+-      textDecoration = props.textDecoration?.toGlanceTextDecoration()
++      textDecoration = props.textDecoration?.toGlanceTextDecoration(),
++      fontFamily = props.fontFamily.toGlanceFontFamily()
+     )
+     it.maxLines = props.maxLines ?: Int.MAX_VALUE
+   }
+@@ -540,6 +542,21 @@ private fun VerticalAlignment.toGlanceVerticalAlignment(): Alignment.Vertical {
+   }
+ }
+ 
++/**
++ * Glance draws widget text with a system font family name. App-bundled faces such as
++ * Geist Mono are not visible to RemoteViews, so mono families map to the system monospace face.
++ */
++private fun String?.toGlanceFontFamily(): FontFamily? {
++  val name = this?.lowercase() ?: return null
++  return when {
++    name == "serif" -> FontFamily.Serif
++    name == "cursive" -> FontFamily.Cursive
++    name == "sansserif" || name == "sans-serif" || name == "default" -> FontFamily.SansSerif
++    name == "monospace" || name.contains("mono") || name.contains("geist") -> FontFamily.Monospace
++    else -> FontFamily(name)
++  }
++}
++
+ private fun TextFontWeight.toGlanceFontWeight(): FontWeight {
+   return when (this) {
+     TextFontWeight.BOLD, TextFontWeight.W700, TextFontWeight.W800, TextFontWeight.W900 -> FontWeight.Bold
+diff --git a/android/src/main/java/expo/modules/widgets/WidgetsUpdater.kt b/android/src/main/java/expo/modules/widgets/WidgetsUpdater.kt
+index e1caef727b3b0b94a8dedd669f9a09fe5d1304c0..b3a1ea941854446534f9d956e4fe6380d9099018 100644
+--- a/android/src/main/java/expo/modules/widgets/WidgetsUpdater.kt
++++ b/android/src/main/java/expo/modules/widgets/WidgetsUpdater.kt
+@@ -2,6 +2,7 @@ package expo.modules.widgets
+ 
+ import android.appwidget.AppWidgetManager
+ import android.content.Context
++import android.content.Intent
+ import androidx.glance.appwidget.AppWidgetId
+ import kotlinx.coroutines.CoroutineName
+ import kotlinx.coroutines.CoroutineScope
+@@ -42,8 +43,21 @@ internal object WidgetsUpdater {
+   private suspend fun updateWidget(context: Context, name: String) {
+     val appWidgetManager = AppWidgetManager.getInstance(context)
+     val componentName = widgetProviderComponentName(context, name)
+-    val widget = ExpoWidgetsPeekWidget(name)
+ 
++    // StreakWidget is a launcher Chronometer. Glance would freeze the digits.
++    if (name == "StreakWidget") {
++      val ids = appWidgetManager.getAppWidgetIds(componentName)
++      if (ids.isNotEmpty()) {
++        context.sendBroadcast(
++          Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE)
++            .setComponent(componentName)
++            .putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids)
++        )
++      }
++      return
++    }
++
++    val widget = ExpoWidgetsPeekWidget(name)
+     appWidgetManager.getAppWidgetIds(componentName).forEach { appWidgetId ->
+       widget.refresh(context, AppWidgetId(appWidgetId))
+     }

@@ -48,8 +48,27 @@ let hydrated = false;
 let hydrating: Promise<void> | null = null;
 const listeners = new Set<() => void>();
 
+type MutationEvent =
+  | { type: 'log'; entry: GoonEntry }
+  | { type: 'change' };
+
+let mutationListener: ((event: MutationEvent) => void) | null = null;
+
+/** Used by the notification engine — avoids a circular import from this module. */
+export function setGoonMutationListener(listener: ((event: MutationEvent) => void) | null) {
+  mutationListener = listener;
+}
+
 function emit() {
   for (const listener of listeners) listener();
+}
+
+function notifyMutation(event: MutationEvent) {
+  try {
+    mutationListener?.(event);
+  } catch {
+    // notification engine failures must never break logging
+  }
 }
 
 async function persist() {
@@ -104,6 +123,7 @@ export async function logGoon(input: LogGoonInput = {}): Promise<GoonEntry> {
   entries = sortByOccurredAtDesc([entry, ...entries]);
   emit();
   await persist();
+  notifyMutation({ type: 'log', entry });
   return entry;
 }
 
@@ -113,12 +133,14 @@ export async function annotateEntry(id: string, patch: AnnotateGoonPatch) {
   );
   emit();
   await persist();
+  notifyMutation({ type: 'change' });
 }
 
 export async function deleteEntry(id: string) {
   entries = entries.filter((entry) => entry.id !== id);
   emit();
   await persist();
+  notifyMutation({ type: 'change' });
 }
 
 /** Re-inserts a previously deleted entry, kept in occurredAt order. Used by undo. */
@@ -126,4 +148,5 @@ export async function restoreEntry(entry: GoonEntry) {
   entries = sortByOccurredAtDesc([...entries, entry]);
   emit();
   await persist();
+  notifyMutation({ type: 'change' });
 }

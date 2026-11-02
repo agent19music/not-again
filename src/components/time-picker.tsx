@@ -16,6 +16,7 @@ import Animated, {
 
 import SafeText from '@/components/safe-text';
 import { Motion, Radius, Spacing } from '@/constants/theme';
+import { useNow } from '@/hooks/use-now';
 import { useTheme } from '@/hooks/use-theme';
 import { formatClock, formatDayLabel, startOfDay, DAY_MS } from '@/lib/digest';
 
@@ -23,7 +24,36 @@ const ITEM_HEIGHT = 40;
 const VISIBLE_ITEMS = 5;
 const WHEEL_HEIGHT = ITEM_HEIGHT * VISIBLE_ITEMS;
 
-type DateChip = 'today' | 'yesterday';
+type DayOption = {
+  key: string;
+  label: string;
+  start: number;
+};
+
+function getDayOptions(referenceTs: number, customTs: number | null): DayOption[] {
+  const todayStart = startOfDay(referenceTs);
+  const options: DayOption[] = [];
+
+  for (let i = 0; i < 7; i += 1) {
+    const start = todayStart - i * DAY_MS;
+    const label = i === 0 ? 'Today' : i === 1 ? 'Yesterday' : formatDayLabel(start, referenceTs);
+    options.push({ key: `day-${i}`, label, start });
+  }
+
+  if (customTs !== null) {
+    const customStart = startOfDay(customTs);
+    const exists = options.some((opt) => opt.start === customStart);
+    if (!exists) {
+      options.push({
+        key: `custom-${customStart}`,
+        label: formatDayLabel(customStart, referenceTs),
+        start: customStart,
+      });
+    }
+  }
+
+  return options;
+}
 
 function clampToNow(ts: number) {
   const now = Date.now();
@@ -64,6 +94,7 @@ function WheelColumn({
       scrollRef.current?.scrollTo({ y: selectedIndex * ITEM_HEIGHT, animated: false });
     });
     return () => cancelAnimationFrame(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const onMomentumEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -120,43 +151,42 @@ export function TimePicker({
   onChange: (next: number | null) => void;
 }) {
   const colors = useTheme();
+  const now = useNow();
   const [open, setOpen] = useState(false);
   const expand = useSharedValue(0);
 
-  const initial = useMemo(() => decompose(value ?? Date.now()), []);
+  const initial = useMemo(() => decompose(value ?? now), [now, value]);
   const [hour12, setHour12] = useState(initial.hour12);
   const [minute, setMinute] = useState(initial.minute);
   const [period, setPeriod] = useState<'AM' | 'PM'>(initial.period);
-  const [dayChip, setDayChip] = useState<DateChip>(() => {
-    const today = startOfDay(Date.now());
-    if (value !== null && startOfDay(value) === today - DAY_MS) return 'yesterday';
-    return 'today';
+  const [selectedDayStart, setSelectedDayStart] = useState<number>(() => {
+    return value !== null ? startOfDay(value) : startOfDay(now);
   });
+
+  const dayOptions = useMemo(() => getDayOptions(now, value), [now, value]);
 
   const hours = useMemo(() => Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0')), []);
   const minutes = useMemo(() => Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0')), []);
   const periods = ['AM', 'PM'];
 
-  const syncFromParts = (h: number, m: number, p: 'AM' | 'PM', chip: DateChip) => {
-    const start = startOfDay(Date.now()) - (chip === 'yesterday' ? DAY_MS : 0);
+  const syncFromParts = (h: number, m: number, p: 'AM' | 'PM', start: number) => {
     onChange(compose(start, h, m, p));
   };
 
   const openPicker = () => {
     if (value === null) {
-      const now = decompose(Date.now());
-      setHour12(now.hour12);
-      setMinute(now.minute);
-      setPeriod(now.period);
-      setDayChip('today');
-      onChange(compose(startOfDay(Date.now()), now.hour12, now.minute, now.period));
+      const currentParts = decompose(now);
+      setHour12(currentParts.hour12);
+      setMinute(currentParts.minute);
+      setPeriod(currentParts.period);
+      setSelectedDayStart(currentParts.dayStart);
+      onChange(compose(currentParts.dayStart, currentParts.hour12, currentParts.minute, currentParts.period));
     } else {
       const parts = decompose(value);
       setHour12(parts.hour12);
       setMinute(parts.minute);
       setPeriod(parts.period);
-      const today = startOfDay(Date.now());
-      setDayChip(parts.dayStart === today - DAY_MS ? 'yesterday' : 'today');
+      setSelectedDayStart(parts.dayStart);
     }
     setOpen(true);
     expand.set(withSpring(1, Motion.spring.sheet));
@@ -181,7 +211,7 @@ export function TimePicker({
   const displayLabel =
     value === null
       ? null
-      : `${formatDayLabel(value, Date.now())} · ${formatClock(value)}`;
+      : `${formatDayLabel(value, now)} · ${formatClock(value)}`;
 
   return (
     <View style={styles.block}>
@@ -220,15 +250,18 @@ export function TimePicker({
 
       {open ? (
         <Animated.View style={[styles.panel, { borderColor: colors.border }, panelStyle]}>
-          <View style={styles.chips}>
-            {(['today', 'yesterday'] as DateChip[]).map((chip) => {
-              const active = dayChip === chip;
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.chips}>
+            {dayOptions.map((opt) => {
+              const active = selectedDayStart === opt.start;
               return (
                 <Pressable
-                  key={chip}
+                  key={opt.key}
                   onPress={() => {
-                    setDayChip(chip);
-                    syncFromParts(hour12, minute, period, chip);
+                    setSelectedDayStart(opt.start);
+                    syncFromParts(hour12, minute, period, opt.start);
                   }}
                   style={[
                     styles.chip,
@@ -239,12 +272,12 @@ export function TimePicker({
                   <SafeText
                     variant="caption"
                     color={active ? 'accentSoftText' : 'textSecondary'}>
-                    {chip === 'today' ? 'Today' : 'Yesterday'}
+                    {opt.label}
                   </SafeText>
                 </Pressable>
               );
             })}
-          </View>
+          </ScrollView>
 
           <View style={styles.wheels}>
             <WheelColumn
@@ -253,7 +286,7 @@ export function TimePicker({
               onSelect={(index) => {
                 const next = index + 1;
                 setHour12(next);
-                syncFromParts(next, minute, period, dayChip);
+                syncFromParts(next, minute, period, selectedDayStart);
               }}
             />
             <WheelColumn
@@ -261,7 +294,7 @@ export function TimePicker({
               selectedIndex={minute}
               onSelect={(index) => {
                 setMinute(index);
-                syncFromParts(hour12, index, period, dayChip);
+                syncFromParts(hour12, index, period, selectedDayStart);
               }}
             />
             <WheelColumn
@@ -270,7 +303,7 @@ export function TimePicker({
               onSelect={(index) => {
                 const next = index === 0 ? 'AM' : 'PM';
                 setPeriod(next);
-                syncFromParts(hour12, minute, next, dayChip);
+                syncFromParts(hour12, minute, next, selectedDayStart);
               }}
             />
           </View>

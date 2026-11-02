@@ -1,4 +1,3 @@
-import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { BlurView } from 'expo-blur';
 import { Tabs } from 'expo-router';
 import { ChartBarIcon, PlusCircleIcon } from 'phosphor-react-native';
@@ -26,7 +25,22 @@ function TabIcon({
   return null;
 }
 
-function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
+type TabBarRenderProps = {
+  state: {
+    index: number;
+    routes: { key: string; name: string }[];
+  };
+  navigation: {
+    emit: (event: {
+      type: string;
+      target?: string;
+      canPreventDefault?: boolean;
+    }) => { defaultPrevented: boolean };
+    navigate: (name: string) => void;
+  };
+};
+
+function FloatingTabBar({ state, navigation }: TabBarRenderProps) {
   const colors = useTheme();
   const scheme = useResolvedScheme();
   const insets = useSafeAreaInsets();
@@ -45,30 +59,33 @@ function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
             pointerEvents="none"
             style={[StyleSheet.absoluteFill, { backgroundColor: colors.surface, opacity: 0.7 }]}
           />
-          {state.routes.map((route, index) => {
-            const isFocused = state.index === index;
-            const color = isFocused ? colors.accent : colors.textMuted;
+          {state.routes
+            .map((route, index) => ({ route, index }))
+            .filter(({ route }) => route.name !== 'settings')
+            .map(({ route, index }) => {
+              const isFocused = state.index === index;
+              const color = isFocused ? colors.accent : colors.textMuted;
 
-            const onPress = () => {
-              const event = navigation.emit({
-                type: 'tabPress',
-                target: route.key,
-                canPreventDefault: true,
-              });
-              if (!isFocused && !event.defaultPrevented) {
-                navigation.navigate(route.name);
-              }
-            };
+              const onPress = () => {
+                const event = navigation.emit({
+                  type: 'tabPress',
+                  target: route.key,
+                  canPreventDefault: true,
+                });
+                if (!isFocused && !event.defaultPrevented) {
+                  navigation.navigate(route.name);
+                }
+              };
 
-            return (
-              <Pressable
-                key={route.key}
-                onPress={onPress}
-                style={({ pressed }) => [styles.tab, pressed && styles.tabPressed]}>
-                <TabIcon name={route.name} isFocused={isFocused} color={color} />
-              </Pressable>
-            );
-          })}
+              return (
+                <Pressable
+                  key={route.key}
+                  onPress={onPress}
+                  style={({ pressed }) => [styles.tab, pressed && styles.tabPressed]}>
+                  <TabIcon name={route.name} isFocused={isFocused} color={color} />
+                </Pressable>
+              );
+            })}
         </View>
       </View>
     </>
@@ -78,10 +95,11 @@ function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
 export default function AppTabs() {
   return (
     <Tabs
-      tabBar={(props) => <FloatingTabBar {...props} />}
+      tabBar={(props) => <FloatingTabBar {...(props as TabBarRenderProps)} />}
       screenOptions={{ headerShown: false }}>
       <Tabs.Screen name="index" />
       <Tabs.Screen name="stats" />
+      <Tabs.Screen name="settings" options={{ href: null }} />
     </Tabs>
   );
 }
