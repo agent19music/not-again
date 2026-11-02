@@ -2,36 +2,34 @@ import { Column, Text } from '@expo/ui/jetpack-compose';
 import { fillMaxSize, paddingAll } from '@expo/ui/jetpack-compose/modifiers';
 import { createWidget, type WidgetEnvironment } from 'expo-widgets';
 
-export type StreakWidgetProps = {
-  /** Epoch ms of the latest entry. Null when nothing is logged. */
-  lastOccurredAt: number | null;
-};
+import type { StreakWidgetProps } from './hour-grid';
+
+export type { StreakWidgetProps } from './hour-grid';
 
 /**
- * Android draws this with a system Chronometer (see plugins/withStreakChronometer.js),
- * which keeps counting after the app is gone. This layout is the gallery placeholder.
+ * Android draws the hour grid natively (plugins/withStreakHourGrid.js): a Kotlin
+ * port of hour-grid.ts paints a bitmap with Geist Pixel Square and reschedules
+ * itself for the next streak minute or confetti frame. This Glance layout is
+ * only the gallery placeholder.
  */
 const StreakWidgetView = (props: StreakWidgetProps, environment: WidgetEnvironment) => {
   'widget';
 
   const dark = environment.colorScheme === 'dark';
-  const digit = dark ? '#E85A6F' : '#D83C55';
+  const ink = dark ? '#fafafa' : '#171717';
   const muted = dark ? '#a3a3a3' : '#737373';
-  const caption = props.lastOccurredAt == null ? 'Nothing logged yet.' : 'since last goon';
+  const logged = props.lastOccurredAt != null;
+  const caption = logged ? 'since last goon' : 'Nothing logged yet.';
 
   return (
     <Column
-      horizontalAlignment="center"
-      verticalArrangement="center"
+      horizontalAlignment="start"
+      verticalArrangement="bottom"
       modifiers={[fillMaxSize(), paddingAll(16)]}>
-      <Text
-        color={digit}
-        style={{ fontFamily: 'GeistMono_400Regular', fontSize: 36, textAlign: 'center' }}>
-        00:00:00
+      <Text color={ink} style={{ fontFamily: 'GeistPixelSquare', fontSize: 40 }}>
+        {logged ? props.clock : '00:00'}
       </Text>
-      <Text
-        color={muted}
-        style={{ fontFamily: 'GeistMono_400Regular', fontSize: 13, textAlign: 'center' }}>
+      <Text color={muted} style={{ fontFamily: 'Geist_500Medium', fontSize: 13 }}>
         {caption}
       </Text>
     </Column>
@@ -40,4 +38,11 @@ const StreakWidgetView = (props: StreakWidgetProps, environment: WidgetEnvironme
 
 export default createWidget<StreakWidgetProps>('StreakWidget', StreakWidgetView, {
   lastOccurredAt: null,
+  clock: '00:00',
+  days: '0 days',
+  dayShort: '0d',
+  filled: 0,
+  phase: 'none',
+  frame: 0,
+  seed: 0,
 });

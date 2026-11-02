@@ -67,23 +67,27 @@
               "displayName": "Streak",
               "description": "Time since your last goon",
               "ios": {
-                "supportedFamilies": ["systemSmall", "systemMedium"],
+                "supportedFamilies": [
+                  "systemSmall",
+                  "systemMedium",
+                  "systemLarge"
+                ],
                 "contentMarginsDisabled": true,
                 "initialLayout": "./src/widgets/streak-widget.ios.tsx"
               },
               "android": {
-                "minWidth": 180,
+                "minWidth": 110,
                 "minHeight": 110,
-                "targetCellWidth": 3,
+                "targetCellWidth": 4,
                 "targetCellHeight": 2,
-                "resizeMode": "horizontal",
+                "resizeMode": "both",
                 "initialLayout": "./src/widgets/streak-widget.android.tsx"
               }
             }
           ]
         }
       ],
-      "./plugins/withStreakChronometer.js"
+      "./plugins/withStreakHourGrid.js"
     ],
     "experiments": {
       "typedRoutes": true,
