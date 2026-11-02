@@ -1,0 +1,24 @@
+// BEGIN native-codegen-order
+// The app compiles autolinked C++ sources, so their generated headers must
+// exist before CMake configures or compiles, including on a clean build.
+def nativeAutolinking = new groovy.json.JsonSlurper().parse(
+    rootProject.layout.buildDirectory.file("generated/autolinking/autolinking.json").get().asFile
+)
+def nativeCodegenTasks = nativeAutolinking.dependencies.values().findAll { dependency ->
+    def androidDependency = dependency.platforms?.android
+    androidDependency?.libraryName && !androidDependency.isPureCxxDependency
+}.collect { dependency ->
+    def projectName = dependency.name
+        .replaceAll(/[~*!'()]+/, "_")
+        .replaceAll(/^@([\w-.]+)\//, '$1_')
+    ":${projectName}:generateCodegenArtifactsFromSchema"
+}
+
+tasks.configureEach { task ->
+    if (task.name == "preBuild" ||
+        task.name.startsWith("configureCMake") ||
+        task.name.startsWith("buildCMake")) {
+        task.dependsOn(nativeCodegenTasks)
+    }
+}
+// END native-codegen-order
